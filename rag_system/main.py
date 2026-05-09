@@ -71,7 +71,7 @@ async def upload_document(file: UploadFile = File(...)):
         vector_store = QdrantVectorStore.from_documents(
             splits,
             embeddings,
-            path="./qdrant_db",
+            location=":memory:",
             collection_name="notebooklm_docs"
         )
         retriever = vector_store.as_retriever(search_kwargs={"k": 4})
@@ -93,17 +93,7 @@ async def upload_document(file: UploadFile = File(...)):
 async def chat_with_document(request: ChatRequest):
     global retriever
     if not retriever:
-        # Try to load existing db if available
-        if os.path.exists("./qdrant_db"):
-            vector_store = QdrantVectorStore.from_existing_collection(
-                embedding=embeddings,
-                path="./qdrant_db",
-                collection_name="notebooklm_docs"
-            )
-            retriever = vector_store.as_retriever(search_kwargs={"k": 4})
-        else:
-            raise HTTPException(status_code=400, detail="No document uploaded yet.")
-            
+        raise HTTPException(status_code=400, detail="No document uploaded yet.")
     try:
         # Initialize LLM
         groq_api_key = os.getenv("GROQ_API_KEY")
